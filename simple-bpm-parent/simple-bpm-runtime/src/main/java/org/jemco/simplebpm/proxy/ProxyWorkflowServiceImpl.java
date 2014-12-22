@@ -3,7 +3,6 @@ package org.jemco.simplebpm.proxy;
 import java.lang.reflect.Proxy;
 
 import org.jemco.simplebpm.WorkflowSession;
-import org.springframework.util.Assert;
 
 public class ProxyWorkflowServiceImpl implements ProxyWorkflowService {
 
@@ -17,7 +16,6 @@ public class ProxyWorkflowServiceImpl implements ProxyWorkflowService {
 	public <T extends ProxyWorkflow> T getWorkflowProxy(String id, Class<T> type) {
 		
 		WorkflowSession session = newSession(id);
-		Assert.notNull(session, "No session..");
 		
 		@SuppressWarnings("unchecked")
 		T proxyInstance = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), 
