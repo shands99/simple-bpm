@@ -6,7 +6,9 @@ import org.jemco.simplebpm.action.ActionHandler;
 
 public interface ActionExecutorRole extends StateRole  {
 
-	List<ActionHandler> getActionHandlers();
+	List<ActionHandler> getEntryHandlers();
+	
+	List<ActionHandler> getExitHandlers();
 	
 	void addEntryHandler(ActionHandler handler);
 	

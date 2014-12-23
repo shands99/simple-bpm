@@ -9,6 +9,6 @@ public interface ActionExecutor {
 	 * Given an action state, execute a series of actions. Check order if provided.
 	 * @param state
 	 */
-	void executeActions(ActionExecutorRole state, WorkflowSession session, Phase phase);
+	void executeActions(ActionExecutorRole state, WorkflowSession session, Phase phase) throws ActionException;
 	
 }

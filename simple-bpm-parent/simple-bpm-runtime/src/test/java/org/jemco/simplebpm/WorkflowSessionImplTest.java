@@ -3,6 +3,7 @@ package org.jemco.simplebpm;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jemco.simplebpm.action.ActionExecutor;
+import org.jemco.simplebpm.action.DefaultActionExecutor;
 import org.jemco.simplebpm.action.Phase;
 import org.jemco.simplebpm.event.Event;
 import org.jemco.simplebpm.event.EventHandler;
@@ -16,6 +17,31 @@ import org.jemco.simplebpm.runtime.execution.RamExecutionContext;
 
 public class WorkflowSessionImplTest {
 
+	private WorkflowSession createTestSession(State start) {
+		ExecutionContext context = new RamExecutionContext(start);
+		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), null, new MockEventService());
+		return session;
+	}
+	
+	@Test
+	public void test_actionStateRole_simple() throws Exception {
+		
+		Process process = new ProcessImpl("test");
+		State state = process.addStartState("start-state");
+		State state2 = process.addTransition(state, "startToSecond", "second-state");
+		state2.setBlocking(true);
+		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
+		state3.setEnd(true);
+				
+		WorkflowSession session = createTestSession(state);
+		
+		session.execute("startToSecond");
+		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
+		session.execute("secondToFinal");
+		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		
+	}
+	
 	@Test
 	public void test_simpleBlockingFlow() throws Exception {
 		
@@ -26,8 +52,7 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		ExecutionContext context = new RamExecutionContext(state);
-		WorkflowSession session = new WorkflowSessionImpl(context, new MockActionExecution(), null, new MockEventService());
+		WorkflowSession session = createTestSession(state);
 		
 		session.execute("startToSecond");
 		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
@@ -49,8 +74,7 @@ public class WorkflowSessionImplTest {
 		
 		state3 = process.addTransition(state2a, "2aToFinal", "third-state");
 		
-		ExecutionContext context = new RamExecutionContext(state);
-		WorkflowSession session = new WorkflowSessionImpl(context, new MockActionExecution(), null, new MockEventService());
+		WorkflowSession session = createTestSession(state);
 		
 		session.execute("startToSecond");
 		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
@@ -68,8 +92,7 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		ExecutionContext context = new RamExecutionContext(state);
-		WorkflowSession session = new WorkflowSessionImpl(context, new MockActionExecution(), null, new MockEventService());
+		WorkflowSession session = createTestSession(state);
 		
 		session.execute("secondToFinal");
 		
@@ -84,8 +107,7 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		ExecutionContext context = new RamExecutionContext(state);
-		WorkflowSession session = new WorkflowSessionImpl(context, new MockActionExecution(), null, new MockEventService());
+		WorkflowSession session = createTestSession(state);
 		
 		session.execute("startToSecond");
 		session.execute("secondToFinal");
@@ -100,25 +122,11 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		ExecutionContext context = new RamExecutionContext(state);
-		WorkflowSession session = new WorkflowSessionImpl(context, new MockActionExecution(), null, new MockEventService());
+		WorkflowSession session = createTestSession(state);
 		
 		// should be at final state
 		session.execute("startToSecond");
 		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
-		
-	}
-	
-	private class MockActionExecution implements ActionExecutor {
-
-		@Override
-		public void executeActions(ActionExecutorRole state,
-				WorkflowSession session, Phase phase) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		
 		
 	}
 	
