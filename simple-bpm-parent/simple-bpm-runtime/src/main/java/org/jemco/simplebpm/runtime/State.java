@@ -6,16 +6,20 @@ public interface State {
 	
 	boolean isEnd();
 	
+	void setEnd(boolean isEnd);
+	
 	boolean isBlocking();
+	
+	void setBlocking(boolean blocking);
 	
 	String getName();
 	
 	boolean validate();
 	
-	void addTransition(StateTransition transition);
+	void addStateRole(StateRole role);
 	
-	StateTransition getTransition(String name);
-		
+	<T extends StateRole> T getRole(Class<T> roleType);
+	
 	List<StateTransition> getExitTransitions();
 	
 }

@@ -4,10 +4,11 @@ import java.text.MessageFormat;
 import java.util.List;
 
 import org.jemco.simplebpm.action.ActionExecutor;
+import org.jemco.simplebpm.action.Phase;
 import org.jemco.simplebpm.event.EventService;
 import org.jemco.simplebpm.function.FunctionUtils;
 import org.jemco.simplebpm.function.Predicate;
-import org.jemco.simplebpm.runtime.ActionState;
+import org.jemco.simplebpm.runtime.ActionExecutorRole;
 import org.jemco.simplebpm.runtime.Context;
 import org.jemco.simplebpm.runtime.State;
 import org.jemco.simplebpm.runtime.StateTransition;
@@ -31,9 +32,9 @@ public class WorkflowSessionImpl implements WorkflowSession {
 	private final EventService eventService;
 
 	// TODO move to external property file
-	private static final String MSG_END_STATE = "Current state {0} is a final state. Unable to take transition '{1}'.";
-	private static final String MSG_NOT_VALID_TRANS = "Unable to take transition '{0}' from state '{1}'.";
-	private static final String MSG_MORE_THAN_ONE_DEFAULT = "More than one default transition from node '{0}'.";
+	private static final String MSG_END_STATE = "Current state {0} is a final state. Unable to take transition {1}.";
+	private static final String MSG_NOT_VALID_TRANS = "Unable to take transition {0} from state {1}.";
+	private static final String MSG_MORE_THAN_ONE_DEFAULT = "More than one default transition from node {0}.";
 	
 	public WorkflowSessionImpl(ExecutionContext executionState,
 			ActionExecutor actionExecutor, Context context,
@@ -51,7 +52,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 		
 		// cannot progress from final state
 		if (currentState.isEnd()) {
-			throw new WorkflowException(MessageFormat.format(MSG_END_STATE, new Object[]{currentState.getName(), transition}));
+			throw new WorkflowException(MessageFormat.format(MSG_END_STATE, currentState.getName(), transition));
 		}
 		
 		// retrieve state transition from exit list
@@ -62,7 +63,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 		
 		// if null - assume this transition cannot be taken from the current state.
 		if (targetTransition == null) {
-			throw new WorkflowException(MessageFormat.format(MSG_NOT_VALID_TRANS, new Object[]{transition, currentState.getName()}));
+			throw new WorkflowException(MessageFormat.format(MSG_NOT_VALID_TRANS, transition, currentState.getName()));
 		}
 		
 		if (executeGuardCondition(targetTransition))
@@ -76,12 +77,18 @@ public class WorkflowSessionImpl implements WorkflowSession {
 		State targetState = targetTransition.getTargetState();
 		
 		// check if target state has actions.
-		if (targetState instanceof ActionState) {
-			actionExecutor.executeActions((ActionState) targetState);
+		ActionExecutorRole actionRole = targetState.getRole(ActionExecutorRole.class);
+		if (actionRole != null) {
+			actionExecutor.executeActions(actionRole, this, Phase.IN);
 		}
 		
 		// finalise and update execution context
 		executionState.executeTransition(targetTransition);
+		
+		// on transition execute any exit handlers
+		if (actionRole != null) {
+			actionExecutor.executeActions(actionRole, this, Phase.OUT);
+		}
 		
 		// raise event for node transition.
 		eventService.raiseEvent(new NodeTransitionEvent(this.context, executionState.getPrevious()
@@ -109,7 +116,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 				
 				// cannot have more than one default transition
 				if (defaultTransitions.size() > 1) {
-					throw new WorkflowException(MessageFormat.format(MSG_MORE_THAN_ONE_DEFAULT, new Object[]{executionState.getCurrentState().getName()}));
+					throw new WorkflowException(MessageFormat.format(MSG_MORE_THAN_ONE_DEFAULT, executionState.getCurrentState().getName()));
 				}
 				
 				if (defaultTransitions.size() == 1) {

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.jemco.simplebpm.action.ActionHandler;
 
-public interface ActionState extends State {
+public interface ActionExecutorRole extends StateRole  {
 
 	List<ActionHandler> getActionHandlers();
 	
