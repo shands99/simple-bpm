@@ -2,7 +2,7 @@ package org.jemco.simplebpm.runtime;
 
 import java.util.List;
 
-public interface State {
+public interface State extends ValidatingEntity {
 	
 	boolean isEnd();
 	
@@ -13,9 +13,7 @@ public interface State {
 	void setBlocking(boolean blocking);
 	
 	String getName();
-	
-	boolean validate();
-	
+		
 	void addStateRole(StateRole role);
 	
 	<T extends StateRole> T getRole(Class<T> roleType);

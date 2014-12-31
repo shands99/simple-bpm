@@ -3,8 +3,11 @@ package org.jemco.simplebpm.runtime;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-public class ProcessImpl implements Process {
+import org.jemco.simplebpm.utils.Holder;
+
+public class ProcessImpl extends BaseValidatingEntity implements Process {
 
 	private Map<String, State> states = new HashMap<String, State>();
 	
@@ -13,6 +16,23 @@ public class ProcessImpl implements Process {
 	public ProcessImpl(String name) {
 		super();
 		this.name = name;
+	}
+	
+	@Override
+	protected boolean doValidate(Holder holder) {
+		
+		// validate states
+		for (Entry<String, State> stateEntry : this.states.entrySet()) {
+			if (!stateEntry.getValue().validate(holder)) {
+				return false;
+			}
+		}
+				
+		// must have at least 1 start & end
+		
+		// check the path through the process is correct
+		
+		return true;
 	}
 	
 	public State addStartState(String name) {
@@ -71,5 +91,7 @@ public class ProcessImpl implements Process {
 	public String getName() {
 		return name;
 	}
+
+	
 
 }

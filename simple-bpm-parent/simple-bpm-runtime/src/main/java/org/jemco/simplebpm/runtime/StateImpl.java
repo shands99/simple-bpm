@@ -6,8 +6,10 @@ import java.util.List;
 
 import org.jemco.simplebpm.function.FunctionUtils;
 import org.jemco.simplebpm.function.Predicate;
+import org.jemco.simplebpm.utils.Assert;
+import org.jemco.simplebpm.utils.Holder;
 
-class StateImpl implements State {
+class StateImpl extends BaseValidatingEntity implements State {
 
 	private boolean end;
 	
@@ -36,11 +38,25 @@ class StateImpl implements State {
 	}
 	
 	@Override
-	public boolean validate() {
-		// TODO Auto-generated method stub
-		return false;
+	protected boolean doValidate(Holder holder) {
+		
+		Assert.notNull(this.process, "Process is null.");
+		Assert.notNull(this.name, "name is null.");
+		
+		// check we only have one of each role
+				
+		// validate transitions
+		for (StateTransition tr : this.exitTransitions) {
+			if (!tr.validate(holder)) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
+	
+	
 	protected State addTransition(final String transitionName, String stateName) {
 		
 		StateTransition targetTransition = FunctionUtils.retrieveObjectFromCollection(exitTransitions, new Predicate<StateTransition>(){

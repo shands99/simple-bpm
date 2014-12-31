@@ -1,6 +1,9 @@
 package org.jemco.simplebpm.runtime;
 
-class StateTransitionImpl implements StateTransition {
+import org.jemco.simplebpm.utils.Assert;
+import org.jemco.simplebpm.utils.Holder;
+
+class StateTransitionImpl extends BaseValidatingEntity implements StateTransition {
 
 	private String name;
 	
@@ -70,6 +73,15 @@ class StateTransitionImpl implements StateTransition {
 	public State getSourceState() {
 		return sourceState;
 	}
+	
+	protected boolean doValidate(Holder holder) {
+		Assert.notNull(sourceState, "Source state is null.");
+		Assert.notNull(name, "Name is null.");
+		Assert.notNull(this.targetState, "Target state is null.");
+		return true;
+	}
+
+	
 
 	
 	

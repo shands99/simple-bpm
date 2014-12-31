@@ -1,6 +1,6 @@
 package org.jemco.simplebpm.runtime;
 
-public interface StateTransition {
+public interface StateTransition extends ValidatingEntity {
 
 	String getName();
 	

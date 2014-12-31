@@ -7,7 +7,7 @@ package org.jemco.simplebpm.runtime;
  * @author a583548
  *
  */
-public interface Process {
+public interface Process extends ValidatingEntity {
 	
 	String getName();
 	
