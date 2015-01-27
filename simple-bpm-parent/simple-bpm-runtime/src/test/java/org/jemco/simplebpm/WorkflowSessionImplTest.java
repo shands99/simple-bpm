@@ -12,13 +12,13 @@ import org.jemco.simplebpm.runtime.ActionExecutorRole;
 import org.jemco.simplebpm.runtime.Process;
 import org.jemco.simplebpm.runtime.ProcessImpl;
 import org.jemco.simplebpm.runtime.State;
-import org.jemco.simplebpm.runtime.execution.ExecutionContext;
-import org.jemco.simplebpm.runtime.execution.RamExecutionContext;
+import org.jemco.simplebpm.runtime.execution.ExecutionState;
+import org.jemco.simplebpm.runtime.execution.DefaultRamExecutionState;
 
 public class WorkflowSessionImplTest {
 
 	private WorkflowSession createTestSession(State start) {
-		ExecutionContext context = new RamExecutionContext(start);
+		ExecutionState context = new DefaultRamExecutionState(start);
 		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), null, new MockEventService());
 		return session;
 	}

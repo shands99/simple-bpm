@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.jemco.simplebpm.runtime.State;
 import org.jemco.simplebpm.runtime.StateTransition;
 
-public class RamExecutionContext implements ExecutionContext {
+public class DefaultRamExecutionState implements ExecutionState {
 
 	private String id;
 	
@@ -16,24 +16,36 @@ public class RamExecutionContext implements ExecutionContext {
 	
 	private State start;
 	
-	public RamExecutionContext(State start) 
+	private Object monitor = new Object();
+	
+	public DefaultRamExecutionState(State start) 
 	{
 		this.id = UUID.randomUUID().toString();
+		this.currentState = start;
+	}
+	
+	public DefaultRamExecutionState(String id, State start) 
+	{
+		this.id = id;
 		this.currentState = start;
 	}
 	
 	@Override
 	public State executeTransition(StateTransition transition) {
 		
-		stateHistory.add(this.currentState);
-		this.currentState = transition.getTargetState();
+		synchronized(monitor) {
+			stateHistory.add(this.currentState);
+			this.currentState = transition.getTargetState();
+		}
 		
 		return transition.getTargetState();
 	}
 
 	@Override
 	public State getPrevious() {
-		return stateHistory.get((stateHistory.size() - 1));
+		synchronized (monitor) {
+			return stateHistory.get((stateHistory.size() - 1));
+		}
 	}
 
 	public String getId() {

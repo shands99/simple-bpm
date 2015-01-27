@@ -12,7 +12,7 @@ public class ProxyWorkflowInvoker implements WorkflowInvoker {
 	@Override
 	public <T extends ProxyWorkflow> T getWorkflowProxy(String id, Class<T> type) {
 		
-		WorkflowSession session = worklflowService.newSession(id);
+		WorkflowSession session = worklflowService.newSession(id, type.getSimpleName());
 		
 		@SuppressWarnings("unchecked")
 		T proxyInstance = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), 

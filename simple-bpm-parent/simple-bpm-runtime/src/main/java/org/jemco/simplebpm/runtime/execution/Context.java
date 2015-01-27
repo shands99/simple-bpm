@@ -1,12 +1,10 @@
-package org.jemco.simplebpm.runtime;
+package org.jemco.simplebpm.runtime.execution;
 
 public interface Context {
 
 	void addContextVariable(String key, Object var);
 	
 	Object getContextVar(String key);
-	
-	<T> T getContextVar(String key, Class<T> type);
 	
 	/**
 	 * Retrieve by class type.  If more than one exists for the same type an exception is thrown.

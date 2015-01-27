@@ -7,6 +7,6 @@ public interface WorkflowService {
 	 * @param id
 	 * @return
 	 */
-	WorkflowSession newSession(String id);
+	WorkflowSession newSession(String id, String processName);
 	
 }

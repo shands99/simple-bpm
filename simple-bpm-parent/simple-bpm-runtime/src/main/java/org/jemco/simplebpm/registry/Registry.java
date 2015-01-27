@@ -8,6 +8,8 @@ public interface Registry {
 	
 	<T> T get(Class<T> clazz);
 	
+	<T> T get(String classifier);
+	
 	<T> T get(String classifier, Class<T> clazz);
 	
 }

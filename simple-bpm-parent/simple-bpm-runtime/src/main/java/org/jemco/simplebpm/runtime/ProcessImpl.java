@@ -13,6 +13,8 @@ public class ProcessImpl extends BaseValidatingEntity implements Process {
 	
 	private String name;
 	
+	private String startState;
+	
 	public ProcessImpl(String name) {
 		super();
 		this.name = name;
@@ -42,6 +44,7 @@ public class ProcessImpl extends BaseValidatingEntity implements Process {
 		if (state instanceof StateImpl) {
 			((StateImpl) state).setStart(true);
 		}
+		this.startState = name;
 		return state;
 		
 	}
@@ -90,6 +93,11 @@ public class ProcessImpl extends BaseValidatingEntity implements Process {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public State getStartState() {
+		return this.getState(startState);
 	}
 
 	

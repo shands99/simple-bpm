@@ -1,7 +1,7 @@
 package org.jemco.simplebpm;
 
-import org.jemco.simplebpm.runtime.Context;
-import org.jemco.simplebpm.runtime.execution.ExecutionContext;
+import org.jemco.simplebpm.runtime.execution.Context;
+import org.jemco.simplebpm.runtime.execution.ExecutionState;
 
 public interface WorkflowSession {
 	
@@ -14,6 +14,6 @@ public interface WorkflowSession {
 	
 	Context getContext();
 	
-	ExecutionContext getExecutionState();
+	ExecutionState getExecutionState();
 		
 }

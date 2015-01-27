@@ -1,5 +1,6 @@
 package org.jemco.simplebpm.runtime;
 
+
 /**
  * Process is the root entity for a business process. All states and transitions should be added here.
  * <pr/>
@@ -14,6 +15,8 @@ public interface Process extends ValidatingEntity {
 	State getState(String name);
 	
 	State addStartState(String name);
+	
+	State getStartState();
 	
 	State addState(String name, boolean isBlocking, boolean isEnd);
 	

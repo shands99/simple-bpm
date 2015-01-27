@@ -9,11 +9,11 @@ import org.jemco.simplebpm.event.EventService;
 import org.jemco.simplebpm.function.FunctionUtils;
 import org.jemco.simplebpm.function.Predicate;
 import org.jemco.simplebpm.runtime.ActionExecutorRole;
-import org.jemco.simplebpm.runtime.Context;
 import org.jemco.simplebpm.runtime.State;
 import org.jemco.simplebpm.runtime.StateTransition;
 import org.jemco.simplebpm.runtime.events.NodeTransitionEvent;
-import org.jemco.simplebpm.runtime.execution.ExecutionContext;
+import org.jemco.simplebpm.runtime.execution.Context;
+import org.jemco.simplebpm.runtime.execution.ExecutionState;
 
 /**
  * The workflow session manages the execution path and dictates the how of the execution flow. This is central to the BPM system and is the most important class.
@@ -21,9 +21,9 @@ import org.jemco.simplebpm.runtime.execution.ExecutionContext;
  * @author a583548
  *
  */
-public class WorkflowSessionImpl implements WorkflowSession {
+final class WorkflowSessionImpl implements WorkflowSession {
 
-	private final ExecutionContext executionState;
+	private final ExecutionState executionState;
 	
 	private final ActionExecutor actionExecutor;
 	
@@ -36,7 +36,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 	private static final String MSG_NOT_VALID_TRANS = "Unable to take transition {0} from state {1}.";
 	private static final String MSG_MORE_THAN_ONE_DEFAULT = "More than one default transition from node {0}.";
 	
-	public WorkflowSessionImpl(ExecutionContext executionState,
+	public WorkflowSessionImpl(ExecutionState executionState,
 			ActionExecutor actionExecutor, Context context,
 			EventService eventService) {
 		super();
@@ -167,7 +167,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 		return context;
 	}
 
-	public ExecutionContext getExecutionState() {
+	public ExecutionState getExecutionState() {
 		return executionState;
 	}
 	

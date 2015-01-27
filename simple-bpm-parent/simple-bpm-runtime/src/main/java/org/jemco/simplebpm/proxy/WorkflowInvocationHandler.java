@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 import org.jemco.simplebpm.WorkflowSession;
-import org.jemco.simplebpm.runtime.Context;
+import org.jemco.simplebpm.runtime.execution.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +13,7 @@ public class WorkflowInvocationHandler implements InvocationHandler {
 	
 	private WorkflowSession workflowSession;
 	
-	private Logger logger = LoggerFactory.getLogger(WorkflowInvocationHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(WorkflowInvocationHandler.class);
 	
 	public WorkflowInvocationHandler(WorkflowSession workflowSession) {
 		super();
@@ -38,8 +38,8 @@ public class WorkflowInvocationHandler implements InvocationHandler {
 			for (Annotation ann : parameterAnnotations) {
 				if (ann instanceof ContextVar) 
 				{
-					if (logger.isDebugEnabled())
-						logger.info("Adding variable with key {0} and type {1}", new Object[]{((ContextVar) ann).key(), args[i]});;
+					if (LOG.isDebugEnabled())
+						LOG.info("Adding variable with key {0} and type {1}", new Object[]{((ContextVar) ann).key(), args[i]});;
 					context.addContextVariable(((ContextVar) ann).key(), args[i]);
 				}
 			}

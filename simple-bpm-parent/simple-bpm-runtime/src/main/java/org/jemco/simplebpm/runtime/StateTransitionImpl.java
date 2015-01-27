@@ -1,9 +1,10 @@
 package org.jemco.simplebpm.runtime;
 
+import org.jemco.simplebpm.runtime.guard.GuardPredicate;
 import org.jemco.simplebpm.utils.Assert;
 import org.jemco.simplebpm.utils.Holder;
 
-class StateTransitionImpl extends BaseValidatingEntity implements StateTransition {
+public class StateTransitionImpl extends BaseValidatingEntity implements StateTransition {
 
 	private String name;
 	

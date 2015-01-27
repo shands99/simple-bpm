@@ -9,7 +9,7 @@ import org.jemco.simplebpm.function.Predicate;
 import org.jemco.simplebpm.utils.Assert;
 import org.jemco.simplebpm.utils.Holder;
 
-class StateImpl extends BaseValidatingEntity implements State {
+public class StateImpl extends BaseValidatingEntity implements State {
 
 	private boolean end;
 	
