@@ -29,7 +29,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 		
 	@Override
 	public WorkflowSession newSession(String id, String processName) {
-		// TODO Auto-generated method stub
+		// TODO Check if in sub-process node if so return sub execution state with session
+		
 		return null;
 	}
 	
@@ -42,7 +43,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 		
 		// if no id is provided assume this will always be a brand new context
 		ExecutionState executionContext = executionContextService.newExecutionContext(null, process);
-		
 		
 		return null;
 	}

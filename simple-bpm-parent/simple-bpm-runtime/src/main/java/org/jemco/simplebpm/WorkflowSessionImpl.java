@@ -3,6 +3,7 @@ package org.jemco.simplebpm;
 import java.text.MessageFormat;
 import java.util.List;
 
+import org.jemco.simplebpm.action.ActionException;
 import org.jemco.simplebpm.action.ActionExecutor;
 import org.jemco.simplebpm.action.Phase;
 import org.jemco.simplebpm.event.EventService;
@@ -17,11 +18,11 @@ import org.jemco.simplebpm.runtime.execution.ExecutionState;
 
 /**
  * The workflow session manages the execution path and dictates the how of the execution flow. This is central to the BPM system and is the most important class.
- * TODO parallell executions, sub-processes, decision states.
+ * TODO parallel executions, decision states.
  * @author a583548
  *
  */
-final class WorkflowSessionImpl implements WorkflowSession {
+class WorkflowSessionImpl implements WorkflowSession {
 
 	private final ExecutionState executionState;
 	
@@ -32,7 +33,7 @@ final class WorkflowSessionImpl implements WorkflowSession {
 	private final EventService eventService;
 
 	// TODO move to external property file
-	private static final String MSG_END_STATE = "Current state {0} is a final state. Unable to take transition {1}.";
+	private static final String MSG_END_STATE = "Current state {0} is a final state.";
 	private static final String MSG_NOT_VALID_TRANS = "Unable to take transition {0} from state {1}.";
 	private static final String MSG_MORE_THAN_ONE_DEFAULT = "More than one default transition from node {0}.";
 	
@@ -45,15 +46,28 @@ final class WorkflowSessionImpl implements WorkflowSession {
 		this.context = context;
 		this.eventService = eventService;
 	}
-
+	
+	private void checkCurrentState(State currentState) throws WorkflowException {
+		// cannot progress from final state
+		if (currentState.isEnd()) {
+			throw new WorkflowException(MessageFormat.format(MSG_END_STATE, currentState.getName()));
+		}
+	}
+	
+	@Override
+	public void execute() throws Exception {
+		// attempt to auto transition from current state
+		final State currentState = executionState.getCurrentState();
+		checkCurrentState(currentState);
+		processAutoTransition(this.executionState);
+		
+	}
+	
 	public void execute(final String transition) throws Exception {
 
 		final State currentState = executionState.getCurrentState();
-		
-		// cannot progress from final state
-		if (currentState.isEnd()) {
-			throw new WorkflowException(MessageFormat.format(MSG_END_STATE, currentState.getName(), transition));
-		}
+		// TODO check if current state is sub process
+		checkCurrentState(currentState);
 		
 		// retrieve state transition from exit list
 		StateTransition targetTransition = FunctionUtils.retrieveObjectFromCollection(currentState.getExitTransitions(), new Predicate<StateTransition>(){
@@ -71,28 +85,44 @@ final class WorkflowSessionImpl implements WorkflowSession {
 		
 	}
 	
-	private void executeTransition(StateTransition targetTransition) throws WorkflowException {
+	private void executeTransition(StateTransition targetTransition) throws Exception {
 		
 		// retrieve target state
 		State targetState = targetTransition.getTargetState();
-		
-		// check if target state has actions.
-		ActionExecutorRole actionRole = targetState.getRole(ActionExecutorRole.class);
-		if (actionRole != null) {
-			actionExecutor.executeActions(actionRole, this, Phase.IN);
-		}
-		
+				
+		// on transition execute any exit handlers of previous state.
+		executeActions(executionState.getPrevious(), Phase.OUT);
+				
 		// finalise and update execution context
 		executionState.executeTransition(targetTransition);
-		
-		// on transition execute any exit handlers
-		if (actionRole != null) {
-			actionExecutor.executeActions(actionRole, this, Phase.OUT);
-		}
+			
+		// check if target state has actions.
+		executeActions(targetState, Phase.IN);
 		
 		// raise event for node transition.
 		eventService.raiseEvent(new NodeTransitionEvent(this.context, executionState.getPrevious()
 				, executionState.getCurrentState(), targetTransition));
+		
+		processAutoTransition(executionState);
+		
+	}
+	
+	protected void executeActions(State state, Phase phase) throws ActionException {
+		if (state != null) {
+			ActionExecutorRole role = state.getRole(ActionExecutorRole.class);
+			if (role != null) {
+				actionExecutor.executeActions(role, this, phase);
+			}
+		}
+	}
+	
+	/**
+	 * This method checks the current state post transition to test if it is a non-blocking state.  If non-blocking it will attempt to 
+	 * auto transition to the next state.
+	 * @param executionState
+	 * @throws Exception 
+	 */
+	private void processAutoTransition(ExecutionState executionState) throws Exception {
 		
 		// if new current state is non-blocking it should auto transition.
 		while (!executionState.getCurrentState().isBlocking() 
@@ -133,7 +163,6 @@ final class WorkflowSessionImpl implements WorkflowSession {
 			}
 			
 		}
-		
 	}
 	
 	/**
@@ -170,5 +199,12 @@ final class WorkflowSessionImpl implements WorkflowSession {
 	public ExecutionState getExecutionState() {
 		return executionState;
 	}
+
+	@Override
+	public boolean isComplete() {
+		return executionState.getCurrentState().isEnd();
+	}
+
+
 	
 }

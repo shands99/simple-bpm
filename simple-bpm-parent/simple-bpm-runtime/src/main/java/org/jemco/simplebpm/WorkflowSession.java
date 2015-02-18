@@ -12,8 +12,20 @@ public interface WorkflowSession {
 	 */
 	void execute(String transition) throws Exception;
 	
+	/**
+	 * Signal the process. This will attempt to auto execute any auto transition states from current.
+	 * @throws Exception
+	 */
+	void execute() throws Exception;
+	
 	Context getContext();
 	
 	ExecutionState getExecutionState();
+	
+	/**
+	 * Is the underlying process in a final state.
+	 * @return
+	 */
+	boolean isComplete();
 		
 }

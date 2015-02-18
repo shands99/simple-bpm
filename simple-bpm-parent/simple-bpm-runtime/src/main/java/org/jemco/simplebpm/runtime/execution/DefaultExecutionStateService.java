@@ -17,7 +17,16 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 	public ExecutionState newExecutionContext(String id, Process process) 
 	{		
 		ExecutionState context = new DefaultRamExecutionState(process.getStartState());
+		
+		//TODO - inspect process and add child execution states where required
+		
 		return context;
+	}
+	
+	private ExecutionState addChildExecutionState(ExecutionState parent,
+			String id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -36,5 +45,7 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	
 
 }

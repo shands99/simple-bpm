@@ -1,6 +1,7 @@
 package org.jemco.simplebpm.runtime.execution;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.jemco.simplebpm.runtime.State;
@@ -17,6 +18,10 @@ public class DefaultRamExecutionState implements ExecutionState {
 	private State start;
 	
 	private Object monitor = new Object();
+	
+	private ExecutionState parent;
+	
+	private List<ExecutionState> children = new ArrayList<ExecutionState>();
 	
 	public DefaultRamExecutionState(State start) 
 	{
@@ -44,7 +49,7 @@ public class DefaultRamExecutionState implements ExecutionState {
 	@Override
 	public State getPrevious() {
 		synchronized (monitor) {
-			return stateHistory.get((stateHistory.size() - 1));
+			return stateHistory.size() > 0 ? stateHistory.get((stateHistory.size() - 1)) : null;
 		}
 	}
 
@@ -58,6 +63,20 @@ public class DefaultRamExecutionState implements ExecutionState {
 
 	public State getStart() {
 		return start;
+	}
+
+	@Override
+	public ExecutionState getParent() {
+		return parent;
+	}
+
+	@Override
+	public List<ExecutionState> getChildren() {
+		return children;
+	}
+
+	public void setParent(ExecutionState parent) {
+		this.parent = parent;
 	}
 
 }
