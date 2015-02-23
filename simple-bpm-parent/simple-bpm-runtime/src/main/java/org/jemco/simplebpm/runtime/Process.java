@@ -24,4 +24,6 @@ public interface Process extends ValidatingEntity {
 	
 	State addTransition(State sourceState, String transitionName, String targetState);
 	
+	Process addSubProcess(State parentState, String subProcessName);
+	
 }

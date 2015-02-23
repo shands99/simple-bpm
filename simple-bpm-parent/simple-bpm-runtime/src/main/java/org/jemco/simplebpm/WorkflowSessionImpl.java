@@ -15,6 +15,8 @@ import org.jemco.simplebpm.runtime.StateTransition;
 import org.jemco.simplebpm.runtime.events.NodeTransitionEvent;
 import org.jemco.simplebpm.runtime.execution.Context;
 import org.jemco.simplebpm.runtime.execution.ExecutionState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The workflow session manages the execution path and dictates the how of the execution flow. This is central to the BPM system and is the most important class.
@@ -31,6 +33,10 @@ class WorkflowSessionImpl implements WorkflowSession {
 	private final Context context;
 	
 	private final EventService eventService;
+	
+	private FinaliseCallback<WorkflowSession> finaliseCallback;
+	
+	private static final Logger LOG = LoggerFactory.getLogger(WorkflowSessionImpl.class);
 
 	// TODO move to external property file
 	private static final String MSG_END_STATE = "Current state {0} is a final state.";
@@ -40,11 +46,19 @@ class WorkflowSessionImpl implements WorkflowSession {
 	public WorkflowSessionImpl(ExecutionState executionState,
 			ActionExecutor actionExecutor, Context context,
 			EventService eventService) {
+		this(executionState, actionExecutor, context, eventService, null);
+	}
+	
+	public WorkflowSessionImpl(ExecutionState executionState,
+			ActionExecutor actionExecutor, Context context,
+			EventService eventService,
+			FinaliseCallback<WorkflowSession> finaliseCallback) {
 		super();
 		this.executionState = executionState;
 		this.actionExecutor = actionExecutor;
 		this.context = context;
 		this.eventService = eventService;
+		this.finaliseCallback = finaliseCallback;
 	}
 	
 	private void checkCurrentState(State currentState) throws WorkflowException {
@@ -89,7 +103,8 @@ class WorkflowSessionImpl implements WorkflowSession {
 		
 		// retrieve target state
 		State targetState = targetTransition.getTargetState();
-				
+		LOG.info("Attempting to take transition {0}", targetTransition.getName());
+		
 		// on transition execute any exit handlers of previous state.
 		executeActions(executionState.getPrevious(), Phase.OUT);
 				
@@ -104,6 +119,14 @@ class WorkflowSessionImpl implements WorkflowSession {
 				, executionState.getCurrentState(), targetTransition));
 		
 		processAutoTransition(executionState);
+		
+		// raise session complete event
+		eventService.raiseEvent(new SessionCompleteEvent(context, executionState));
+		
+		// runtime callback on session completion
+		if (finaliseCallback != null) {
+			finaliseCallback.onFinalise(this);
+		}
 		
 	}
 	
@@ -157,6 +180,7 @@ class WorkflowSessionImpl implements WorkflowSession {
 			
 			// This effectively loops through the execution flow until it errors, reaches a blocking state or final state.
 			if (newTargetTransition != null) {
+				LOG.info("Auto executiing transition {0}", newTargetTransition.getName());
 				executeTransition(newTargetTransition);
 			} else {
 				// TODO should we error here ?
@@ -204,7 +228,6 @@ class WorkflowSessionImpl implements WorkflowSession {
 	public boolean isComplete() {
 		return executionState.getCurrentState().isEnd();
 	}
-
 
 	
 }

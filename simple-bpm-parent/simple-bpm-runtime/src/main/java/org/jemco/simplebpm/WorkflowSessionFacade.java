@@ -23,15 +23,41 @@ public class WorkflowSessionFacade implements WorkflowSession {
 	
 	private WorkflowSession delegate;
 	
+	private String processId;
+	
 	public WorkflowSessionFacade(ExecutionState executionState,
 			ActionExecutor actionExecutor, Context context,
-			EventService eventService) {
+			EventService eventService, String processId) {
 		super();
 		this.executionState = executionState;
 		this.actionExecutor = actionExecutor;
 		this.context = context;
 		this.eventService = eventService;
-		delegate = new WorkflowSessionImpl(executionState, actionExecutor, context, eventService);
+		this.processId = processId;
+		delegate = new WorkflowSessionImpl(executionState, actionExecutor, context
+				, eventService, new FinaliseCallback<WorkflowSession>() {
+
+					@Override
+					public void onFinalise(WorkflowSession target) {
+						// this handles the loop when the child execution state may cause the parent session to transition automatically
+						if (target.isComplete()) {
+							
+							
+							try {
+								execute();
+							} catch (Exception e) {
+								//TODO think about this
+								throw new RuntimeException(e);
+							}
+						}
+					}});
+		
+	}
+	
+	private WorkflowSession checkSubSessionActive(State state, String transition) throws Exception {
+		WorkflowSession subSession = createSubSession(state);
+		processSession(subSession, transition);
+		return subSession;
 	}
 	
 	@Override
@@ -40,16 +66,26 @@ public class WorkflowSessionFacade implements WorkflowSession {
 		final State currentState = executionState.getCurrentState();
 		
 		WorkflowSession subSession = createSubSession(currentState);
+		// use to see if state of any sub-session moves to complete within this context
+		boolean wasComplete = subSession != null ? subSession.isComplete() : false;
 		processSession(subSession, transition);
 		
-		if (subSession == null || subSession.isComplete()) {
-			if (null != transition) {
-				delegate.execute(transition);
-			} else {
-				delegate.execute();
-			}
+		// was there an open sub process at the start of this session that has now completed ?
+		if (subSession != null && (wasComplete == false && subSession.isComplete())) {
 			
-		} 
+			// set parent state to non-blocking as the child process is now complete
+			//TODO fix this for multi threading
+			currentState.setBlocking(false);
+			processSession(delegate, null);
+			
+		} else {
+			
+			processSession(delegate, transition);
+			
+			// final check to see if we have entered into a sub-process, if so signal.
+			checkSubSessionActive(executionState.getCurrentState(), null);
+			
+		}
 		
 	}
 
@@ -59,22 +95,25 @@ public class WorkflowSessionFacade implements WorkflowSession {
 		execute(null);
 		
 	}
-	
-	private void processSession(WorkflowSession subSession, String transition) throws Exception {
-		if (subSession != null && !subSession.isComplete()) {
+		
+	private void processSession(WorkflowSession session, String transition) throws Exception {
+		if (session != null && !session.isComplete()) {
 			if (null != transition) {
-				subSession.execute(transition);
+				session.execute(transition);
 			} else {
-				subSession.execute();
+				session.execute();
 			}
-			
+		} else {
+			// Log ?
 		}
+		
 	}
 	
 	private WorkflowSession createSubSession(State targetState) {
 		SubProcessRole subProcessRole = targetState.getRole(SubProcessRole.class);
 		if(subProcessRole != null) {
-			ExecutionState subState = getExecutionState(executionState.getChildren(), subProcessRole.getSubProcessId());
+			String id = subProcessRole.getProcessName() + ":" + this.processId;
+			ExecutionState subState = getExecutionState(executionState.getChildren(), id);
 			
 			// load new sub-session to cover the process node - it may complete to the end automatically so let this function complete
 			WorkflowSession subSession = new WorkflowSessionImpl(subState, actionExecutor, context, eventService);

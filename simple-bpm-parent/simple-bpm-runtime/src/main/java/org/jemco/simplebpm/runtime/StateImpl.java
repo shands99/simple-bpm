@@ -118,7 +118,7 @@ public class StateImpl extends BaseValidatingEntity implements State {
 	public <T extends StateRole> T getRole(final Class<T> roleType) {
 		StateRole role = FunctionUtils.retrieveObjectFromCollection(this.stateRoles, new Predicate<StateRole>(){
 			public boolean accept(StateRole object) {
-				return object.getClass().equals(roleType);
+				return roleType.isAssignableFrom(object.getClass());
 			}});
 		return (T) role;
 	}

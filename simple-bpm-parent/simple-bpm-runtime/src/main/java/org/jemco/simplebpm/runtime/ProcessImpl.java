@@ -100,6 +100,17 @@ public class ProcessImpl extends BaseValidatingEntity implements Process {
 		return this.getState(startState);
 	}
 
+	@Override
+	public Process addSubProcess(State parentState, String subProcessName) {
+		
+		SubProcessRole subRole = new SubProcessRoleImpl(parentState, subProcessName);
+		parentState.addStateRole(subRole);
+		// parent node is always blocking when using sub processes
+		parentState.setBlocking(true);
+		
+		return new ProcessImpl(subProcessName);
+	}
+
 	
 
 }
