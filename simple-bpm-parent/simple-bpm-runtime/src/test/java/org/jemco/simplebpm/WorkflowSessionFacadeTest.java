@@ -39,17 +39,13 @@ public class WorkflowSessionFacadeTest {
 		Process process = new ProcessImpl("test");
 		State state = process.addStartState("start-state");
 		State state2 = process.addTransition(state, "startToSecond", "second-state");
-		state2.setBlocking(true);
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		Process subProcess = new ProcessImpl("sub-test");
+		Process subProcess = process.addSubProcess(state2, "subprocess");
 		State subStart = subProcess.addStartState("sub-start");
 		State subState1 = subProcess.addTransition(subStart, "subStartToEnd", "final");
 		subState1.setEnd(true);
-		
-		SubProcessRole subRole = new SubProcessRoleImpl(state2, "subprocess");
-		state2.addStateRole(subRole);
 		
 		WorkflowSession session = createTestSession(state, "1");
 		session.getExecutionState().getChildren().add(new DefaultRamExecutionState("subprocess:1", subStart));

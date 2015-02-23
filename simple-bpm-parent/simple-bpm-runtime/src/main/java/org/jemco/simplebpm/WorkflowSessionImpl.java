@@ -70,12 +70,18 @@ class WorkflowSessionImpl implements WorkflowSession {
 	
 	@Override
 	public void execute() throws Exception {
+		
+		execute(false);
+	}
+	
+	@Override
+	public void execute(boolean overrideBlocked) throws Exception {
 		// attempt to auto transition from current state
 		final State currentState = executionState.getCurrentState();
 		checkCurrentState(currentState);
-		processAutoTransition(this.executionState);
-		
+		processAutoTransition(this.executionState, overrideBlocked);
 	}
+
 	
 	public void execute(final String transition) throws Exception {
 
@@ -118,7 +124,7 @@ class WorkflowSessionImpl implements WorkflowSession {
 		eventService.raiseEvent(new NodeTransitionEvent(this.context, executionState.getPrevious()
 				, executionState.getCurrentState(), targetTransition));
 		
-		processAutoTransition(executionState);
+		processAutoTransition(executionState, false);
 		
 		// raise session complete event
 		eventService.raiseEvent(new SessionCompleteEvent(context, executionState));
@@ -145,48 +151,61 @@ class WorkflowSessionImpl implements WorkflowSession {
 	 * @param executionState
 	 * @throws Exception 
 	 */
-	private void processAutoTransition(ExecutionState executionState) throws Exception {
+	private void processAutoTransition(ExecutionState executionState, boolean overrideBlocked) throws Exception {
 		
-		// if new current state is non-blocking it should auto transition.
-		while (!executionState.getCurrentState().isBlocking() 
-				&& !executionState.getCurrentState().isEnd()) 
-		{
+		if (!overrideBlocked) {
+			// if new current state is non-blocking it should auto transition.
+			while (!executionState.getCurrentState().isBlocking() 
+					&& !executionState.getCurrentState().isEnd()) 
+			{
+				retrieveAndProcessTargetTransition(executionState.getCurrentState());
+			}
+		} else {
+			retrieveAndProcessTargetTransition(executionState.getCurrentState());
+		}
+		
+	}
+	
+	private void retrieveAndProcessTargetTransition(State state) throws Exception {
+		StateTransition newTargetTransition = retrieveTargetTransition(executionState.getCurrentState());
+		
+		// This effectively loops through the execution flow until it errors, reaches a blocking state or final state.
+		if (newTargetTransition != null) {
+			LOG.info("Auto executiing transition {0}", newTargetTransition.getName());
+			executeTransition(newTargetTransition);
+		} else {
+			// TODO should we error here ?
+		}
+	}
+	
+	private StateTransition retrieveTargetTransition(State state) throws WorkflowException {
+		// if non-blocking it can either have 1 non guarded transition, or n transitions where some are guarded but only 1 default can be non-guarded.
+		// execute each in turn to find if any pass, first that passes take the transition
+		List<StateTransition> guardedTransitions = FunctionUtils.predicateCollection(state.getExitTransitions(), new Predicate<StateTransition>(){
+			public boolean accept(StateTransition object) {
+				return object.getGuardPredicate() != null;
+			}});
+		
+		StateTransition newTargetTransition = executeGuardConditions(guardedTransitions);
+		if (newTargetTransition == null) {
 			
-			// if non-blocking it can either have 1 non guarded transition, or n transitions where some are guarded but only 1 default can be non-guarded.
-			// execute each in turn to find if any pass, first that passes take the transition
-			List<StateTransition> guardedTransitions = FunctionUtils.predicateCollection(executionState.getCurrentState().getExitTransitions(), new Predicate<StateTransition>(){
+			List<StateTransition> defaultTransitions = FunctionUtils.predicateCollection(state.getExitTransitions(), new Predicate<StateTransition>(){
 				public boolean accept(StateTransition object) {
-					return object.getGuardPredicate() != null;
+					return object.getGuardPredicate() == null;
 				}});
 			
-			StateTransition newTargetTransition = executeGuardConditions(guardedTransitions);
-			if (newTargetTransition == null) {
-				
-				List<StateTransition> defaultTransitions = FunctionUtils.predicateCollection(executionState.getCurrentState().getExitTransitions(), new Predicate<StateTransition>(){
-					public boolean accept(StateTransition object) {
-						return object.getGuardPredicate() == null;
-					}});
-				
-				// cannot have more than one default transition
-				if (defaultTransitions.size() > 1) {
-					throw new WorkflowException(MessageFormat.format(MSG_MORE_THAN_ONE_DEFAULT, executionState.getCurrentState().getName()));
-				}
-				
-				if (defaultTransitions.size() == 1) {
-					newTargetTransition = defaultTransitions.get(0);
-				}
-				
+			// cannot have more than one default transition
+			if (defaultTransitions.size() > 1) {
+				throw new WorkflowException(MessageFormat.format(MSG_MORE_THAN_ONE_DEFAULT, state.getName()));
 			}
 			
-			// This effectively loops through the execution flow until it errors, reaches a blocking state or final state.
-			if (newTargetTransition != null) {
-				LOG.info("Auto executiing transition {0}", newTargetTransition.getName());
-				executeTransition(newTargetTransition);
-			} else {
-				// TODO should we error here ?
+			if (defaultTransitions.size() == 1) {
+				newTargetTransition = defaultTransitions.get(0);
 			}
 			
 		}
+		
+		return newTargetTransition;
 	}
 	
 	/**
@@ -228,6 +247,5 @@ class WorkflowSessionImpl implements WorkflowSession {
 	public boolean isComplete() {
 		return executionState.getCurrentState().isEnd();
 	}
-
 	
 }

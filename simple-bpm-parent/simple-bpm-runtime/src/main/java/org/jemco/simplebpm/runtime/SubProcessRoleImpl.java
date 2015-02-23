@@ -3,21 +3,21 @@ package org.jemco.simplebpm.runtime;
 public class SubProcessRoleImpl implements SubProcessRole {
 
 	private State parent;
-	
-	private String processName;
+		
+	private Process subProcess;
 
-	public SubProcessRoleImpl(State parent, String processName) {
+	public SubProcessRoleImpl(State parent, Process subProcess) {
 		super();
 		this.parent = parent;
-		this.processName = processName;
+		this.subProcess = subProcess;
 	}
 	
 	public State getParent() {
 		return parent;
 	}
 
-	public String getProcessName() {
-		return processName;
+	public Process getSubProcess() {
+		return subProcess;
 	}
 	
 }

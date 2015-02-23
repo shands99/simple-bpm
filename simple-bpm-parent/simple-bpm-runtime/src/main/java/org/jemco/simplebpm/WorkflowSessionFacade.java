@@ -11,7 +11,7 @@ import org.jemco.simplebpm.runtime.SubProcessRole;
 import org.jemco.simplebpm.runtime.execution.Context;
 import org.jemco.simplebpm.runtime.execution.ExecutionState;
 
-public class WorkflowSessionFacade implements WorkflowSession {
+class WorkflowSessionFacade implements WorkflowSession {
 
 	private final ExecutionState executionState;
 	
@@ -42,7 +42,6 @@ public class WorkflowSessionFacade implements WorkflowSession {
 						// this handles the loop when the child execution state may cause the parent session to transition automatically
 						if (target.isComplete()) {
 							
-							
 							try {
 								execute();
 							} catch (Exception e) {
@@ -56,7 +55,7 @@ public class WorkflowSessionFacade implements WorkflowSession {
 	
 	private WorkflowSession checkSubSessionActive(State state, String transition) throws Exception {
 		WorkflowSession subSession = createSubSession(state);
-		processSession(subSession, transition);
+		processSession(subSession, transition, false);
 		return subSession;
 	}
 	
@@ -66,21 +65,19 @@ public class WorkflowSessionFacade implements WorkflowSession {
 		final State currentState = executionState.getCurrentState();
 		
 		WorkflowSession subSession = createSubSession(currentState);
-		// use to see if state of any sub-session moves to complete within this context
+		// use to track if state of any sub-session moves to complete within this context
 		boolean wasComplete = subSession != null ? subSession.isComplete() : false;
-		processSession(subSession, transition);
+		processSession(subSession, transition, false);
 		
 		// was there an open sub process at the start of this session that has now completed ?
 		if (subSession != null && (wasComplete == false && subSession.isComplete())) {
 			
-			// set parent state to non-blocking as the child process is now complete
-			//TODO fix this for multi threading
-			currentState.setBlocking(false);
-			processSession(delegate, null);
+			// override blocking nature of sub-process parent state
+			processSession(delegate, null, true);
 			
 		} else {
 			
-			processSession(delegate, transition);
+			processSession(delegate, transition, false);
 			
 			// final check to see if we have entered into a sub-process, if so signal.
 			checkSubSessionActive(executionState.getCurrentState(), null);
@@ -95,13 +92,19 @@ public class WorkflowSessionFacade implements WorkflowSession {
 		execute(null);
 		
 	}
+	
+	@Override
+	public void execute(boolean overrideBlocked) throws Exception {
+		throw new UnsupportedOperationException();
+	}
+
 		
-	private void processSession(WorkflowSession session, String transition) throws Exception {
+	private void processSession(WorkflowSession session, String transition, boolean override) throws Exception {
 		if (session != null && !session.isComplete()) {
 			if (null != transition) {
 				session.execute(transition);
 			} else {
-				session.execute();
+				session.execute(override);
 			}
 		} else {
 			// Log ?
@@ -112,7 +115,7 @@ public class WorkflowSessionFacade implements WorkflowSession {
 	private WorkflowSession createSubSession(State targetState) {
 		SubProcessRole subProcessRole = targetState.getRole(SubProcessRole.class);
 		if(subProcessRole != null) {
-			String id = subProcessRole.getProcessName() + ":" + this.processId;
+			String id = subProcessRole.getSubProcess().getName() + ":" + this.processId;
 			ExecutionState subState = getExecutionState(executionState.getChildren(), id);
 			
 			// load new sub-session to cover the process node - it may complete to the end automatically so let this function complete
@@ -146,6 +149,7 @@ public class WorkflowSessionFacade implements WorkflowSession {
 		return delegate.isComplete();
 	}
 
+	
 
 
 }

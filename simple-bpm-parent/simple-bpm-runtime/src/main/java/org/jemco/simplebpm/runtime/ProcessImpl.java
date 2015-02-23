@@ -1,6 +1,7 @@
 package org.jemco.simplebpm.runtime;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,12 +104,19 @@ public class ProcessImpl extends BaseValidatingEntity implements Process {
 	@Override
 	public Process addSubProcess(State parentState, String subProcessName) {
 		
-		SubProcessRole subRole = new SubProcessRoleImpl(parentState, subProcessName);
+		Process subProcess = new ProcessImpl(subProcessName);
+		
+		SubProcessRole subRole = new SubProcessRoleImpl(parentState, subProcess);
 		parentState.addStateRole(subRole);
 		// parent node is always blocking when using sub processes
 		parentState.setBlocking(true);
+		return subProcess;
 		
-		return new ProcessImpl(subProcessName);
+	}
+
+	@Override
+	public Collection<State> getStates() {
+		return this.states.values();
 	}
 
 	

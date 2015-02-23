@@ -18,6 +18,8 @@ public interface WorkflowSession {
 	 */
 	void execute() throws Exception;
 	
+	void execute(boolean overrideBlocked) throws Exception;
+	
 	Context getContext();
 	
 	ExecutionState getExecutionState();
