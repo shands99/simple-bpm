@@ -6,6 +6,7 @@
   <packaging>pom</packaging>
   <modules>
   	<module>simple-bpm-runtime</module>
+  	<module>simple-bpm-springregistry</module>
   </modules>
   <dependencyManagement>
   	<dependencies>

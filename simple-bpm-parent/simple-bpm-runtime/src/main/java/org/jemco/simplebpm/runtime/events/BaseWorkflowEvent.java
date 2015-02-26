@@ -2,7 +2,7 @@ package org.jemco.simplebpm.runtime.events;
 
 import org.jemco.simplebpm.event.BaseEvent;
 import org.jemco.simplebpm.event.WorkflowEvent;
-import org.jemco.simplebpm.runtime.execution.Context;
+import org.jemco.simplebpm.execution.Context;
 
 public abstract class BaseWorkflowEvent extends BaseEvent implements WorkflowEvent {
 

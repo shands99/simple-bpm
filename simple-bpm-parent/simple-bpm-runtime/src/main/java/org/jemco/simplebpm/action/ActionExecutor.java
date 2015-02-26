@@ -1,7 +1,7 @@
 package org.jemco.simplebpm.action;
 
-import org.jemco.simplebpm.WorkflowSession;
-import org.jemco.simplebpm.runtime.ActionExecutorRole;
+import org.jemco.simplebpm.process.ActionExecutorRole;
+import org.jemco.simplebpm.runtime.WorkflowSession;
 
 public interface ActionExecutor {
 

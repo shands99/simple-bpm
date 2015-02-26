@@ -2,12 +2,14 @@ package org.jemco.simplebpm;
 
 import org.jemco.simplebpm.action.ActionExecutor;
 import org.jemco.simplebpm.event.EventService;
+import org.jemco.simplebpm.execution.Context;
+import org.jemco.simplebpm.execution.DefaultContext;
+import org.jemco.simplebpm.execution.ExecutionState;
+import org.jemco.simplebpm.execution.ExecutionStateService;
+import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.registry.Registry;
-import org.jemco.simplebpm.runtime.Process;
-import org.jemco.simplebpm.runtime.execution.Context;
-import org.jemco.simplebpm.runtime.execution.DefaultContext;
-import org.jemco.simplebpm.runtime.execution.ExecutionState;
-import org.jemco.simplebpm.runtime.execution.ExecutionStateService;
+import org.jemco.simplebpm.runtime.WorkflowSession;
+import org.jemco.simplebpm.runtime.WorkflowSessionFacade;
 import org.jemco.simplebpm.utils.Assert;
 
 public class WorkflowServiceImpl implements WorkflowService {
@@ -19,24 +21,21 @@ public class WorkflowServiceImpl implements WorkflowService {
 	private EventService eventService;
 	
 	private Registry registry;
-
-	private void initServices() {
 		
-		executionContextService = registry.get(ExecutionStateService.class);
-		Assert.notNull(executionContextService, "");
-		
-		actionExecutor = registry.get(ActionExecutor.class);
-		Assert.notNull(actionExecutor, "");
-				
-		eventService = registry.get(EventService.class);
-		Assert.notNull(eventService, "");
-		
+	public WorkflowServiceImpl(ExecutionStateService executionContextService,
+			ActionExecutor actionExecutor, EventService eventService,
+			Registry registry) {
+		super();
+		this.executionContextService = executionContextService;
+		this.actionExecutor = actionExecutor;
+		this.eventService = eventService;
+		this.registry = registry;
 	}
-		
+	
 	@Override
 	public WorkflowSession newSession(String id, String processName) {
 		
-		Process process = this.executionContextService.retrieve(processName);
+		Process process = executionContextService.getProcessManager().retrieve(processName);
 		return newSession(id, process);
 		
 	}
@@ -54,6 +53,5 @@ public class WorkflowServiceImpl implements WorkflowService {
 		
 	}
 
-	
 
 }

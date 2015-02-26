@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.jemco.simplebpm.WorkflowSession;
-import org.jemco.simplebpm.runtime.ActionExecutorRole;
+import org.jemco.simplebpm.process.ActionExecutorRole;
+import org.jemco.simplebpm.runtime.WorkflowSession;
 
 public class DefaultActionExecutor implements ActionExecutor {
 

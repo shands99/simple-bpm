@@ -3,7 +3,7 @@ package org.jemco.simplebpm.proxy;
 import java.lang.reflect.Proxy;
 
 import org.jemco.simplebpm.WorkflowService;
-import org.jemco.simplebpm.WorkflowSession;
+import org.jemco.simplebpm.runtime.WorkflowSession;
 
 public class ProxyWorkflowInvoker implements WorkflowInvoker {
 

@@ -1,6 +1,7 @@
 package org.jemco.simplebpm;
 
-import org.jemco.simplebpm.runtime.Process;
+import org.jemco.simplebpm.process.Process;
+import org.jemco.simplebpm.runtime.WorkflowSession;
 
 public interface WorkflowService {
 
