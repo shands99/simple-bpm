@@ -1,20 +1,26 @@
 package org.jemco.simplebpm.execution;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.process.State;
 import org.jemco.simplebpm.process.SubProcessRole;
-import org.jemco.simplebpm.registry.Registry;
 
 public class DefaultExecutionStateService implements ExecutionStateService {
-
-	private Registry registry;
 	
 	private ProcessManager processManager;
 	
+	private Map<String, ExecutionState> stateMap = Collections.synchronizedMap(new HashMap<String, ExecutionState>());
+	
+	public DefaultExecutionStateService() {
+		this.processManager = new DefaultProcessManager();
+	}
+	
 	@Override
 	public ExecutionState getExecutionContext(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		return stateMap.get(id);
 	}
 
 	@Override
@@ -32,19 +38,17 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 			
 		}
 		
+		if (context != null) {
+			stateMap.put(id, context);
+		}
+		
 		return context;
+		
 	}
-
-	@Override
-	public void setRegistry(Registry registry) {
-		this.registry = registry;
-	}
-	
 	
 	public ProcessManager getProcessManager() {
 		return processManager;
 	}
-
 
 
 }

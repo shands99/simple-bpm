@@ -7,12 +7,13 @@ import org.jemco.simplebpm.execution.DefaultContext;
 import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.process.Process;
+import org.jemco.simplebpm.registry.HasRegistry;
 import org.jemco.simplebpm.registry.Registry;
 import org.jemco.simplebpm.runtime.WorkflowSession;
 import org.jemco.simplebpm.runtime.WorkflowSessionFacade;
 import org.jemco.simplebpm.utils.Assert;
 
-public class WorkflowServiceImpl implements WorkflowService {
+public class DefaultWorkflowService implements WorkflowService, HasRegistry {
 
 	private ExecutionStateService executionContextService;
 		
@@ -21,15 +22,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 	private EventService eventService;
 	
 	private Registry registry;
-		
-	public WorkflowServiceImpl(ExecutionStateService executionContextService,
-			ActionExecutor actionExecutor, EventService eventService,
-			Registry registry) {
-		super();
-		this.executionContextService = executionContextService;
-		this.actionExecutor = actionExecutor;
-		this.eventService = eventService;
-		this.registry = registry;
+	
+	@Override
+	public void loadService() {
+		if (registry != null) {
+			executionContextService = registry.get(ExecutionStateService.class);
+			actionExecutor = registry.get(ActionExecutor.class);
+			eventService = registry.get(EventService.class);
+		}
 	}
 	
 	@Override
@@ -53,5 +53,8 @@ public class WorkflowServiceImpl implements WorkflowService {
 		
 	}
 
+	public void setRegistry(Registry registry) {
+		this.registry = registry;
+	}
 
 }

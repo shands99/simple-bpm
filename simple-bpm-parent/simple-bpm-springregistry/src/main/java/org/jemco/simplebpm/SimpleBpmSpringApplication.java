@@ -1,6 +1,6 @@
 package org.jemco.simplebpm;
 
-import org.jemco.simplebpm.registry.SpringRegistry;
+import org.jemco.simplebpm.registry.SpringRegistryWrapper;
 import org.jemco.simplebpm.utils.Assert;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -25,7 +25,7 @@ public class SimpleBpmSpringApplication extends SimpleBpmApplication implements 
 	protected void loadRegistry() {
 		
 		Assert.notNull(applicationContext, "Spring context is null.");
-		registry = new SpringRegistry(applicationContext);
+		registry = new SpringRegistryWrapper(applicationContext);
 		
 	}
 
