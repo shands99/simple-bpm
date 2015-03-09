@@ -1,6 +1,6 @@
 package org.jemco.simplebpm.runtime.guard;
 
-import org.jemco.simplebpm.execution.Context;
+import org.jemco.simplebpm.runtime.Context;
 
 public interface GuardPredicate {
 

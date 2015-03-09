@@ -18,7 +18,7 @@ public final class ServiceUtils {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ServiceUtils.class);
 	
-	public static <T> T load(Class<T> type) {
+	public static <T> List<T> loadAll(Class<T> type) {
 		
 		List<T> results = new ArrayList<T>();
 		ServiceLoader<T> loader = ServiceLoader.load(type);
@@ -27,6 +27,13 @@ public final class ServiceUtils {
 			results.add(iterator.next());
 		}
 		
+		return results;
+		
+	}
+	
+	public static <T> T load(Class<T> type) {
+		
+		List<T> results = loadAll(type);
 		if (results.size() > 1) {
 			LOG.error(MSG_TOO_MANY_SVC, type);
 			return null;

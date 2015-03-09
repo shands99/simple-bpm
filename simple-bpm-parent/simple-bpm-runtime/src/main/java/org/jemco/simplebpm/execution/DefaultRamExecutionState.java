@@ -1,22 +1,20 @@
 package org.jemco.simplebpm.execution;
 
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
 import org.jemco.simplebpm.process.State;
-import org.jemco.simplebpm.process.StateTransition;
 
 public class DefaultRamExecutionState implements ExecutionState {
 
 	private String id;
-	
-	private ArrayList<State> stateHistory = new ArrayList<State>();
-	
-	private State currentState;
-	
-	private State start;
-	
+		
+	private List<Token> tokenHistory = new LinkedList<Token>();
+		
 	private Object monitor = new Object();
 	
 	private ExecutionState parent;
@@ -26,43 +24,37 @@ public class DefaultRamExecutionState implements ExecutionState {
 	public DefaultRamExecutionState(State start) 
 	{
 		this.id = UUID.randomUUID().toString();
-		this.currentState = start;
+		createToken(start.getName(), false, false);
 	}
 	
 	public DefaultRamExecutionState(String id, State start) 
 	{
 		this.id = id;
-		this.currentState = start;
+		createToken(start.getName(), false, false);
 	}
 	
 	@Override
-	public State executeTransition(StateTransition transition) {
-		
+	public void createToken(String name, boolean blocking, boolean end) {
 		synchronized(monitor) {
-			stateHistory.add(this.currentState);
-			this.currentState = transition.getTargetState();
-		}
-		
-		return transition.getTargetState();
-	}
-
-	@Override
-	public State getPrevious() {
-		synchronized (monitor) {
-			return stateHistory.size() > 0 ? stateHistory.get((stateHistory.size() - 1)) : null;
+			
+			Token previous = getPreviousToken(true, false);
+			if (previous != null) {
+				previous.setActive(false);
+				previous.setComplete(true);
+			}
+			
+			Token token = new Token();
+			token.setActive(true);
+			token.setBlocking(blocking);
+			token.setEnd(end);
+			token.setName(name);
+			tokenHistory.add(token);
+			
 		}
 	}
 
 	public String getId() {
 		return id;
-	}
-
-	public State getCurrentState() {
-		return currentState;
-	}
-
-	public State getStart() {
-		return start;
 	}
 
 	@Override
@@ -78,5 +70,34 @@ public class DefaultRamExecutionState implements ExecutionState {
 	public void setParent(ExecutionState parent) {
 		this.parent = parent;
 	}
+
+	
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Token getCurrentToken() {
+		synchronized(monitor) {
+			return ((Deque<Token>)tokenHistory).getLast();
+		}
+	}
+
+	@Override
+	public Token getPreviousToken() {
+		return getPreviousToken(false, true);
+	}
+
+	private Token getPreviousToken(boolean active, boolean complete) {
+		synchronized(monitor) {
+			Iterator<Token> descendingIterator = ((LinkedList)tokenHistory).descendingIterator();
+			while(descendingIterator.hasNext()) {
+				Token token = descendingIterator.next();
+				if (token.isActive() == active && token.isComplete() == complete) {
+					return token;
+				}
+			}
+			return null;
+		}
+	}
+
 
 }

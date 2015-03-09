@@ -1,6 +1,5 @@
 package org.jemco.simplebpm.runtime;
 
-import org.jemco.simplebpm.execution.Context;
 import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.runtime.events.BaseWorkflowEvent;
 

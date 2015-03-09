@@ -1,8 +1,8 @@
 package org.jemco.simplebpm.runtime.events;
 
-import org.jemco.simplebpm.execution.Context;
 import org.jemco.simplebpm.process.State;
 import org.jemco.simplebpm.process.StateTransition;
+import org.jemco.simplebpm.runtime.Context;
 
 public class NodeTransitionEvent extends BaseWorkflowEvent {
 

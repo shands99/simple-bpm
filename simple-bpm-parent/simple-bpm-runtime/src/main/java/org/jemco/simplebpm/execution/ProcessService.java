@@ -2,7 +2,7 @@ package org.jemco.simplebpm.execution;
 
 import org.jemco.simplebpm.process.Process;
 
-public interface ProcessManager {
+public interface ProcessService {
 
 	Process save(String name);
 	

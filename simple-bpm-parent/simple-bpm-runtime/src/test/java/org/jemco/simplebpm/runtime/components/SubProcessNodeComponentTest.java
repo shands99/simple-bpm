@@ -1,4 +1,7 @@
-package org.jemco.simplebpm.runtime;
+package org.jemco.simplebpm.runtime.components;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.jemco.simplebpm.action.DefaultActionExecutor;
 import org.jemco.simplebpm.event.Event;
@@ -9,32 +12,15 @@ import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.process.ProcessImpl;
 import org.jemco.simplebpm.process.State;
-import org.jemco.simplebpm.process.SubProcessRole;
-import org.jemco.simplebpm.process.SubProcessRoleImpl;
+import org.jemco.simplebpm.runtime.DefaultContext;
+import org.jemco.simplebpm.runtime.SessionUtils;
 import org.jemco.simplebpm.runtime.WorkflowSession;
-import org.jemco.simplebpm.runtime.WorkflowSessionFacade;
+import org.jemco.simplebpm.runtime.WorkflowSessionImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class WorkflowSessionFacadeTest {
+public class SubProcessNodeComponentTest {
 
-	@Test
-	public void test_simpleNonBlockingFlow() throws Exception {
-		
-		Process process = new ProcessImpl("test");
-		State state = process.addStartState("start-state");
-		State state2 = process.addTransition(state, "startToSecond", "second-state");
-		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
-		state3.setEnd(true);
-		
-		WorkflowSession session = createTestSession(state);
-		
-		// should be at final state
-		session.execute("startToSecond");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
-		
-	}
-	
 	@Test
 	public void test_subProcess1() throws Exception {
 		
@@ -49,14 +35,12 @@ public class WorkflowSessionFacadeTest {
 		State subState1 = subProcess.addTransition(subStart, "subStartToEnd", "final");
 		subState1.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state, "1");
-		session.getExecutionState().getChildren().add(new DefaultRamExecutionState("subprocess:1", subStart));
+		WorkflowSession session = createTestSession(state, "1", process);
+		//session.getExecutionState().getChildren().add(new DefaultRamExecutionState("subprocess:1", subStart));
 		
 		// executes sub process
-		session.execute("startToSecond");
-		// post sub - process complete
-		session.execute("secondToFinal");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		session.execute("startToSecond");		
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 		
 	}
 	
@@ -77,26 +61,23 @@ public class WorkflowSessionFacadeTest {
 		State subStateEnd = subProcess.addTransition(sub1, "sub1ToEnd", "final");
 		subStateEnd.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state, "1");
-		session.getExecutionState().getChildren().add(new DefaultRamExecutionState("subprocess:1", subStart));
+		WorkflowSession session = createTestSession(state, "1", process);
+		//session.getExecutionState().getChildren().add(new DefaultRamExecutionState("subprocess:1", subStart));
 		
 		// executes sub process
 		session.execute("startToSecond");
+		Assert.assertEquals(state2, SessionUtils.getCurrentNode(session));
+		
 		// post sub - process complete
 		session.execute("sub1ToEnd");
-		//Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
-		//session.execute("secondToFinal");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 		
 	}
 	
-	private WorkflowSession createTestSession(State start) {
-		return this.createTestSession(start, null);
-	}
-	
-	private WorkflowSession createTestSession(State start, String id) {
-		ExecutionState context = new DefaultRamExecutionState(start);
-		WorkflowSession session = new WorkflowSessionFacade(context, new DefaultActionExecutor(), null, new MockEventService(), id);
+	private WorkflowSession createTestSession(State start, String id, Process process) {
+		ExecutionState context = new DefaultRamExecutionState(id, start);
+		List<NodeComponent> components = Arrays.asList(new NodeComponent[]{new SubProcessNodeComponent()});
+		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), new DefaultContext(null), new MockEventService(), process, components);
 		return session;
 	}
 	

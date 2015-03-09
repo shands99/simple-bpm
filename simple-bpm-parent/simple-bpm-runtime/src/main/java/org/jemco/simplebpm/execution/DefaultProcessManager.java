@@ -2,7 +2,7 @@ package org.jemco.simplebpm.execution;
 
 import org.jemco.simplebpm.process.Process;
 
-public class DefaultProcessManager implements ProcessManager {
+public class DefaultProcessManager implements ProcessService {
 
 	private static final String SVC_MSG = "Not implemented in the default service.  You must create your own state management instance.";
 	

@@ -22,12 +22,10 @@ public interface ExecutionState {
 	
 	String getId();
 	
-	State getStart();
+	Token getCurrentToken();
 	
-	State getCurrentState();
-			
-	State executeTransition(StateTransition transition);
+	Token getPreviousToken();
 	
-	State getPrevious();
-	
+	void createToken(String name, boolean blocking, boolean end);
+		
 }

@@ -20,9 +20,9 @@ import org.jemco.simplebpm.runtime.WorkflowSessionImpl;
 
 public class WorkflowSessionImplTest {
 
-	private WorkflowSession createTestSession(State start) {
+	private WorkflowSession createTestSession(State start, Process process) {
 		ExecutionState context = new DefaultRamExecutionState(start);
-		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), null, new MockEventService());
+		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), new DefaultContext(null), new MockEventService(), process);
 		return session;
 	}
 	
@@ -36,12 +36,12 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 				
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		session.execute("startToSecond");
-		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state2, SessionUtils.getCurrentNode(session));
 		session.execute("secondToFinal");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 		
 	}
 	
@@ -55,12 +55,12 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		session.execute("startToSecond");
-		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state2, SessionUtils.getCurrentNode(session));
 		session.execute("secondToFinal");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 	}
 	
 	@Test
@@ -77,12 +77,12 @@ public class WorkflowSessionImplTest {
 		
 		state3 = process.addTransition(state2a, "2aToFinal", "third-state");
 		
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		session.execute("startToSecond");
-		Assert.assertEquals(state2, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state2, SessionUtils.getCurrentNode(session));
 		session.execute("secondToFinal");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 	}
 	
 	@Test(expected = WorkflowException.class)
@@ -95,7 +95,7 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		session.execute("secondToFinal");
 		
@@ -110,7 +110,7 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		session.execute("startToSecond");
 		session.execute("secondToFinal");
@@ -125,11 +125,11 @@ public class WorkflowSessionImplTest {
 		State state3 = process.addTransition(state2, "secondToFinal", "third-state");
 		state3.setEnd(true);
 		
-		WorkflowSession session = createTestSession(state);
+		WorkflowSession session = createTestSession(state, process);
 		
 		// should be at final state
 		session.execute("startToSecond");
-		Assert.assertEquals(state3, session.getExecutionState().getCurrentState());
+		Assert.assertEquals(state3, SessionUtils.getCurrentNode(session));
 		
 	}
 	

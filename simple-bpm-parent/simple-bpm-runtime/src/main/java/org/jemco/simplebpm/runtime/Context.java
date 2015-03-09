@@ -1,4 +1,4 @@
-package org.jemco.simplebpm.execution;
+package org.jemco.simplebpm.runtime;
 
 public interface Context {
 

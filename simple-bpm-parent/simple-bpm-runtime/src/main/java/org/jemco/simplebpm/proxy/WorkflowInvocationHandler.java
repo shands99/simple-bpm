@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-import org.jemco.simplebpm.execution.Context;
+import org.jemco.simplebpm.runtime.Context;
 import org.jemco.simplebpm.runtime.WorkflowSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

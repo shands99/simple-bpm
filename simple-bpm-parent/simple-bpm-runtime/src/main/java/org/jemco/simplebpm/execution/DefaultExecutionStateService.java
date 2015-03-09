@@ -5,12 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jemco.simplebpm.process.Process;
-import org.jemco.simplebpm.process.State;
-import org.jemco.simplebpm.process.SubProcessRole;
 
 public class DefaultExecutionStateService implements ExecutionStateService {
 	
-	private ProcessManager processManager;
+	private ProcessService processManager;
 	
 	private Map<String, ExecutionState> stateMap = Collections.synchronizedMap(new HashMap<String, ExecutionState>());
 	
@@ -27,17 +25,6 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 	public ExecutionState newExecutionContext(String id, Process process) 
 	{		
 		ExecutionState context = new DefaultRamExecutionState(id, process.getStartState());
-		
-		for (State state : process.getStates()) {
-			
-			SubProcessRole sub = state.getRole(SubProcessRole.class);
-			if (sub != null) {
-				String subId = sub.getSubProcess().getName() +":"+id;
-				context.getChildren().add(new DefaultRamExecutionState(subId, sub.getSubProcess().getStartState()));
-			}
-			
-		}
-		
 		if (context != null) {
 			stateMap.put(id, context);
 		}
@@ -46,7 +33,7 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 		
 	}
 	
-	public ProcessManager getProcessManager() {
+	public ProcessService getProcessManager() {
 		return processManager;
 	}
 

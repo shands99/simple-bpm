@@ -1,6 +1,5 @@
-package org.jemco.simplebpm.execution;
+package org.jemco.simplebpm.runtime;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,11 +18,7 @@ public class DefaultContext implements Context {
 
 	@Override
 	public void addContextVariable(String key, Object var) {
-		
-		if (this.contextVariables.containsKey(key)) {
-			throw new IllegalArgumentException(MessageFormat.format("Object already exists in context for key {0}.", key));
-		}
-		
+				
 		contextVariables.put(key, var);
 		
 	}
@@ -31,7 +26,7 @@ public class DefaultContext implements Context {
 	@Override
 	public Object getContextVar(String key) {
 		Object var = contextVariables.get(key);
-		if (var == null)
+		if (var == null && registry != null)
 			var = this.registry.get(key);
 		
 		return var;
