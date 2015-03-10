@@ -1,6 +1,7 @@
 package org.jemco.simplebpm;
 
 import org.jemco.simplebpm.process.Process;
+import org.jemco.simplebpm.runtime.Context;
 import org.jemco.simplebpm.runtime.WorkflowSession;
 
 public interface WorkflowService {
@@ -18,5 +19,7 @@ public interface WorkflowService {
 	 * @return
 	 */
 	WorkflowSession newSession(String id, Process process);
+	
+	WorkflowSession newSession(String id, Process process, Context context);
 	
 }

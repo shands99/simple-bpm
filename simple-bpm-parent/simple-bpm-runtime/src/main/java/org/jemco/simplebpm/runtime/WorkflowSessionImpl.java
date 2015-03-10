@@ -310,7 +310,7 @@ public class WorkflowSessionImpl implements WorkflowSession {
 
 	@Override
 	public boolean isComplete() {
-		return executionState.getCurrentToken().isEnd();
+		return executionState.getCurrentToken() != null ? executionState.getCurrentToken().isEnd() : false;
 	}
 
 	public ActionExecutor getActionExecutor() {

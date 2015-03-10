@@ -43,11 +43,16 @@ public class DefaultWorkflowService implements WorkflowService, HasRegistry {
 	@Override
 	public WorkflowSession newSession(String id, Process process) {
 		
+		return this.newSession(id, process, new DefaultContext(registry));
+		
+	}
+	
+	public WorkflowSession newSession(String id, Process process, Context context) {
+		
 		Assert.notNull(process, "Process is null.");
 		
 		// if no id is provided assume this will always be a brand new context
 		ExecutionState executionContext = executionContextService.newExecutionContext(id, process);
-		Context context = new DefaultContext(registry);
 		
 		return new WorkflowSessionImpl(executionContext, actionExecutor, context, eventService, process);
 		

@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.jemco.simplebpm.action.ActionExecutor;
 import org.jemco.simplebpm.event.EventService;
-import org.jemco.simplebpm.execution.DefaultRamExecutionState;
 import org.jemco.simplebpm.execution.ExecutionState;
+import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.function.FunctionUtils;
 import org.jemco.simplebpm.function.Predicate;
+import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.process.State;
 import org.jemco.simplebpm.process.StateTransition;
 import org.jemco.simplebpm.process.SubProcessRole;
@@ -17,12 +18,16 @@ import org.jemco.simplebpm.runtime.WorkflowSessionImpl;
 
 public class SubNodeProcessor implements NodeProcessor {
 
-	
+	private ExecutionStateService executionStateService;
+		
+	public SubNodeProcessor(ExecutionStateService executionStateService) {
+		super();
+		this.executionStateService = executionStateService;
+	}
 	
 	public void handle(WorkflowSession session, String transition)  throws Exception {
 		
-		final State currentState = SessionUtils.getCurrentNode(session);
-		WorkflowSession subSession = createSubSession(currentState, session);
+		WorkflowSession subSession = createSubSession(session);
 		// use to track if state of any sub-session moves to complete within this context
 		boolean wasComplete = subSession != null ? subSession.isComplete() : false;
 		processSession(subSession, transition, false);
@@ -34,11 +39,6 @@ public class SubNodeProcessor implements NodeProcessor {
 			session.getExecutionState().getCurrentToken().setBlocking(false);
 			session.getContext().addContextVariable(WorkflowSessionImpl.TRANSITION_CONTEXT_KEY, null);
 			
-		} else {
-						
-			// final check to see if we have entered into a sub-process, if so signal.
-			checkSubSessionActive(SessionUtils.getCurrentNode(session), null, session);
-			
 		}
 		
 	}
@@ -47,9 +47,9 @@ public class SubNodeProcessor implements NodeProcessor {
 		// check if we have an execution state tied to this sub-session, if not create.
 		String id = getProcessId(SessionUtils.getCurrentNode(session), session);
 		if (getExecutionState(session.getExecutionState().getChildren(), id) == null) {
-			SubProcessRole subProcessRole = SessionUtils.getCurrentNode(session).getRole(SubProcessRole.class);
-			session.getExecutionState().getChildren().add(new DefaultRamExecutionState(id
-					, subProcessRole.getSubProcess().getStartState()));
+			Process subProcess = getSubProcess(SessionUtils.getCurrentNode(session));
+			ExecutionState subExecutionState = executionStateService.newExecutionContext(id, subProcess);
+			session.getExecutionState().getChildren().add(subExecutionState);
 		}
 		
 	}
@@ -84,12 +84,6 @@ public class SubNodeProcessor implements NodeProcessor {
 		
 	}
 	
-	private WorkflowSession checkSubSessionActive(State state, String transition, WorkflowSession session) throws Exception {
-		WorkflowSession subSession = createSubSession(state, session);
-		processSession(subSession, transition, false);
-		return subSession;
-	}
-	
 	private void processSession(WorkflowSession session, String transition, boolean override) throws Exception {
 		if (session != null && !session.isComplete()) {
 			if (null != transition) {
@@ -103,7 +97,7 @@ public class SubNodeProcessor implements NodeProcessor {
 		
 	}
 	
-	private String getProcessId(State targetState, WorkflowSession session) {
+	protected String getProcessId(State targetState, WorkflowSession session) {
 		SubProcessRole subProcessRole = targetState.getRole(SubProcessRole.class);
 		if(subProcessRole != null) {
 			return subProcessRole.getSubProcess().getName() + ":" + session.getExecutionState().getId();
@@ -111,9 +105,15 @@ public class SubNodeProcessor implements NodeProcessor {
 		return null;
 	}
 	
-	private WorkflowSession createSubSession(State targetState, WorkflowSession session) {
+	protected Process getSubProcess(State targetState) {
 		SubProcessRole subProcessRole = targetState.getRole(SubProcessRole.class);
-		if(subProcessRole != null) {
+		return subProcessRole != null ? subProcessRole.getSubProcess() : null;
+	}
+	
+	protected WorkflowSession createSubSession(WorkflowSession session) {
+		State targetState = SessionUtils.getCurrentNode(session);
+		Process subProcess = getSubProcess(targetState);
+		if(subProcess != null) {
 			String id = getProcessId(targetState, session);
 			
 			ExecutionState subState = getExecutionState(session.getExecutionState().getChildren(), id);
@@ -121,14 +121,15 @@ public class SubNodeProcessor implements NodeProcessor {
 			EventService eventService = session.getEventService();
 			
 			// load new sub-session to cover the process node - it may complete to the end automatically so let this function complete
+			// TODO load via service ?
 			WorkflowSession subSession = new WorkflowSessionImpl(subState, actionExecutor, session.getContext()
-					, eventService, subProcessRole.getSubProcess());
+					, eventService, subProcess);
 			return subSession;
 		}
 		return null;
 	}
 	
-	private ExecutionState getExecutionState(List<ExecutionState> processStates, final String id) {
+	protected ExecutionState getExecutionState(List<ExecutionState> processStates, final String id) {
 		List<ExecutionState> subProcessStates = FunctionUtils.predicateCollection(processStates, new Predicate<ExecutionState>() {
 			@Override
 			public boolean accept(ExecutionState state) {
@@ -136,6 +137,8 @@ public class SubNodeProcessor implements NodeProcessor {
 			}});
 		return subProcessStates.size() == 1 ? subProcessStates.get(0) : null;
 	}
+
+
 
 
 }

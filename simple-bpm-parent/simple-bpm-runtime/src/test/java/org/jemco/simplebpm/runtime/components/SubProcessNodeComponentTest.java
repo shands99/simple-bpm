@@ -7,11 +7,15 @@ import org.jemco.simplebpm.action.DefaultActionExecutor;
 import org.jemco.simplebpm.event.Event;
 import org.jemco.simplebpm.event.EventHandler;
 import org.jemco.simplebpm.event.EventService;
+import org.jemco.simplebpm.execution.DefaultExecutionStateService;
 import org.jemco.simplebpm.execution.DefaultRamExecutionState;
 import org.jemco.simplebpm.execution.ExecutionState;
+import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.process.ProcessImpl;
 import org.jemco.simplebpm.process.State;
+import org.jemco.simplebpm.registry.DefaultRegistry;
+import org.jemco.simplebpm.registry.Registry;
 import org.jemco.simplebpm.runtime.DefaultContext;
 import org.jemco.simplebpm.runtime.SessionUtils;
 import org.jemco.simplebpm.runtime.WorkflowSession;
@@ -75,10 +79,21 @@ public class SubProcessNodeComponentTest {
 	}
 	
 	private WorkflowSession createTestSession(State start, String id, Process process) {
+		
 		ExecutionState context = new DefaultRamExecutionState(id, start);
-		List<NodeComponent> components = Arrays.asList(new NodeComponent[]{new SubProcessNodeComponent()});
+		
+		SubProcessNodeComponent subComponent = new SubProcessNodeComponent();
+		ExecutionStateService executionStateService = new DefaultExecutionStateService();
+		Registry registry = new DefaultRegistry();
+		registry.add(executionStateService);
+		subComponent.setRegistry(registry);
+		subComponent.loadService();
+		
+		List<NodeComponent> components = Arrays.asList(new NodeComponent[]{subComponent});
 		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), new DefaultContext(null), new MockEventService(), process, components);
+		
 		return session;
+	
 	}
 	
 	private class MockEventService implements EventService {
