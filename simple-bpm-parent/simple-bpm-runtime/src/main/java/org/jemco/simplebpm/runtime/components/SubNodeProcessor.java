@@ -2,8 +2,7 @@ package org.jemco.simplebpm.runtime.components;
 
 import java.util.List;
 
-import org.jemco.simplebpm.action.ActionExecutor;
-import org.jemco.simplebpm.event.EventService;
+import org.jemco.simplebpm.WorkflowService;
 import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.function.FunctionUtils;
@@ -19,10 +18,13 @@ import org.jemco.simplebpm.runtime.WorkflowSessionImpl;
 public class SubNodeProcessor implements NodeProcessor {
 
 	private ExecutionStateService executionStateService;
+	
+	private WorkflowService workflowService;
 		
-	public SubNodeProcessor(ExecutionStateService executionStateService) {
+	public SubNodeProcessor(ExecutionStateService executionStateService, WorkflowService workflowService) {
 		super();
 		this.executionStateService = executionStateService;
+		this.workflowService = workflowService;
 	}
 	
 	public void handle(WorkflowSession session, String transition)  throws Exception {
@@ -117,13 +119,9 @@ public class SubNodeProcessor implements NodeProcessor {
 			String id = getProcessId(targetState, session);
 			
 			ExecutionState subState = getExecutionState(session.getExecutionState().getChildren(), id);
-			ActionExecutor actionExecutor = session.getActionExecutor();
-			EventService eventService = session.getEventService();
 			
 			// load new sub-session to cover the process node - it may complete to the end automatically so let this function complete
-			// TODO load via service ?
-			WorkflowSession subSession = new WorkflowSessionImpl(subState, actionExecutor, session.getContext()
-					, eventService, subProcess);
+			WorkflowSession subSession = workflowService.newSession(subProcess, session.getContext(), subState);
 			return subSession;
 		}
 		return null;

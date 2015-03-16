@@ -1,5 +1,6 @@
 package org.jemco.simplebpm.runtime.components;
 
+import org.jemco.simplebpm.WorkflowService;
 import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.process.State;
 import org.jemco.simplebpm.process.SubProcessRole;
@@ -11,7 +12,8 @@ public class SubProcessNodeComponent extends BaseNodeComponent {
 	@Override
 	public void loadService() {
 		ExecutionStateService executionService = registry.get(ExecutionStateService.class);
-		processor = new SubNodeProcessor(executionService);
+		WorkflowService workflowService = registry.get(WorkflowService.class);
+		processor = new SubNodeProcessor(executionService, workflowService);
 	}
 	
 	@Override

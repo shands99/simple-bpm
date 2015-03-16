@@ -5,6 +5,7 @@ import org.jemco.simplebpm.event.EventService;
 import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.process.Process;
+import org.jemco.simplebpm.process.ProcessService;
 import org.jemco.simplebpm.registry.HasRegistry;
 import org.jemco.simplebpm.registry.Registry;
 import org.jemco.simplebpm.runtime.Context;
@@ -21,6 +22,8 @@ public class DefaultWorkflowService implements WorkflowService, HasRegistry {
 	
 	private EventService eventService;
 	
+	private ProcessService processService;
+	
 	private Registry registry;
 	
 	@Override
@@ -29,13 +32,14 @@ public class DefaultWorkflowService implements WorkflowService, HasRegistry {
 			executionContextService = registry.get(ExecutionStateService.class);
 			actionExecutor = registry.get(ActionExecutor.class);
 			eventService = registry.get(EventService.class);
+			processService = registry.get(ProcessService.class);
 		}
 	}
 	
 	@Override
 	public WorkflowSession newSession(String id, String processName) {
 		
-		Process process = executionContextService.getProcessManager().retrieve(processName);
+		Process process = processService.retrieve(processName);
 		return newSession(id, process);
 		
 	}
@@ -48,13 +52,21 @@ public class DefaultWorkflowService implements WorkflowService, HasRegistry {
 	}
 	
 	public WorkflowSession newSession(String id, Process process, Context context) {
-		
-		Assert.notNull(process, "Process is null.");
-		
+				
 		// if no id is provided assume this will always be a brand new context
 		ExecutionState executionContext = executionContextService.newExecutionContext(id, process);
 		
-		return new WorkflowSessionImpl(executionContext, actionExecutor, context, eventService, process);
+		return newSession(process, context, executionContext);
+		
+	}
+	
+	public WorkflowSession newSession(Process process, Context context, ExecutionState executionState) {
+		
+		Assert.notNull(process, "Process is null.");
+		Assert.notNull(executionState, "executionState is null.");
+		Assert.notNull(context, "context is null.");
+		
+		return new WorkflowSessionImpl(executionState, actionExecutor, context, eventService, process);
 		
 	}
 

@@ -3,6 +3,9 @@ package org.jemco.simplebpm.runtime.components;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jemco.simplebpm.DefaultWorkflowService;
+import org.jemco.simplebpm.WorkflowService;
+import org.jemco.simplebpm.action.ActionExecutor;
 import org.jemco.simplebpm.action.DefaultActionExecutor;
 import org.jemco.simplebpm.event.Event;
 import org.jemco.simplebpm.event.EventHandler;
@@ -14,7 +17,7 @@ import org.jemco.simplebpm.execution.ExecutionStateService;
 import org.jemco.simplebpm.process.Process;
 import org.jemco.simplebpm.process.ProcessImpl;
 import org.jemco.simplebpm.process.State;
-import org.jemco.simplebpm.registry.DefaultRegistry;
+import org.jemco.simplebpm.registry.SimpleHashMapRegistry;
 import org.jemco.simplebpm.registry.Registry;
 import org.jemco.simplebpm.runtime.DefaultContext;
 import org.jemco.simplebpm.runtime.SessionUtils;
@@ -83,15 +86,25 @@ public class SubProcessNodeComponentTest {
 		ExecutionState context = new DefaultRamExecutionState(id, start);
 		
 		SubProcessNodeComponent subComponent = new SubProcessNodeComponent();
+		
 		ExecutionStateService executionStateService = new DefaultExecutionStateService();
-		Registry registry = new DefaultRegistry();
+		DefaultWorkflowService workflowService = new DefaultWorkflowService();
+		ActionExecutor executor = new DefaultActionExecutor();
+		EventService eventService = new MockEventService();
+		
+		Registry registry = new SimpleHashMapRegistry();
 		registry.add(executionStateService);
+		registry.add(workflowService);
+		registry.add(executor);
+		registry.add(eventService);
+		
 		subComponent.setRegistry(registry);
 		subComponent.loadService();
+		workflowService.setRegistry(registry);
+		workflowService.loadService();
 		
 		List<NodeComponent> components = Arrays.asList(new NodeComponent[]{subComponent});
-		WorkflowSession session = new WorkflowSessionImpl(context, new DefaultActionExecutor(), new DefaultContext(null), new MockEventService(), process, components);
-		
+		WorkflowSession session = workflowService.newSession(process, new DefaultContext(null), context);
 		return session;
 	
 	}

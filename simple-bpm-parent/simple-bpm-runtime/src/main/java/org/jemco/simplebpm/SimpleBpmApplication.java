@@ -9,7 +9,9 @@ import org.jemco.simplebpm.event.DefaultEventService;
 import org.jemco.simplebpm.event.EventService;
 import org.jemco.simplebpm.execution.DefaultExecutionStateService;
 import org.jemco.simplebpm.execution.ExecutionStateService;
-import org.jemco.simplebpm.registry.DefaultRegistry;
+import org.jemco.simplebpm.process.DefaultProcessService;
+import org.jemco.simplebpm.process.ProcessService;
+import org.jemco.simplebpm.registry.SimpleHashMapRegistry;
 import org.jemco.simplebpm.registry.HasRegistry;
 import org.jemco.simplebpm.registry.Registry;
 import org.jemco.simplebpm.utils.ServiceUtils;
@@ -33,6 +35,8 @@ public class SimpleBpmApplication {
 	
 	private ExecutionStateService executionStateService;
 	
+	private ProcessService processService;
+	
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleBpmApplication.class);
 	
 	private static final String MSG_NOTFOUND_REG = "Type {0} not found in registry. Using SPI to load service.";
@@ -46,11 +50,20 @@ public class SimpleBpmApplication {
 		loadExecutionService();
 		loadActionExecutor();
 		loadWorkflowService();
+		loadProcessService();
 		
 		for (Object svc : this.services) {
 			postProcessService(svc);
 		}
 		
+	}
+	
+	private void loadProcessService() {
+		this.processService = loadWithRegistry(ProcessService.class);
+		if (processService == null) {
+			processService = new DefaultProcessService();
+			services.add(processService);
+		}
 	}
 	
 	private void loadWorkflowService() {
@@ -97,7 +110,7 @@ public class SimpleBpmApplication {
 		//albeit unlikely the registry can be loaded via SPI.
 		registry = ServiceUtils.load(Registry.class);
 		if (registry == null) {
-			registry = new DefaultRegistry();
+			registry = new SimpleHashMapRegistry();
 		}
 		
 	}

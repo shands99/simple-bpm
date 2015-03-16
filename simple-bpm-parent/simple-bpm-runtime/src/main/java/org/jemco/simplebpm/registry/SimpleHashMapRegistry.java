@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jemco.simplebpm.function.FunctionUtils;
 import org.jemco.simplebpm.function.Predicate;
 
-public class DefaultRegistry implements Registry {
+public class SimpleHashMapRegistry implements Registry {
 
 	private Map<String, Object> registryObjects = new ConcurrentHashMap<String, Object>();
 	
@@ -46,8 +46,7 @@ public class DefaultRegistry implements Registry {
 
 	@Override
 	public <T> T get(String classifier, Class<T> clazz) {
-		// TODO Auto-generated method stub
-		return null;
+		return get(classifier);
 	}
 
 }

@@ -4,7 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jemco.simplebpm.process.DefaultProcessService;
 import org.jemco.simplebpm.process.Process;
+import org.jemco.simplebpm.process.ProcessService;
 
 public class DefaultExecutionStateService implements ExecutionStateService {
 	
@@ -13,7 +15,7 @@ public class DefaultExecutionStateService implements ExecutionStateService {
 	private Map<String, ExecutionState> stateMap = Collections.synchronizedMap(new HashMap<String, ExecutionState>());
 	
 	public DefaultExecutionStateService() {
-		this.processManager = new DefaultProcessManager();
+		this.processManager = new DefaultProcessService();
 	}
 	
 	@Override

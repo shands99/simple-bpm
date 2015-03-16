@@ -2,9 +2,6 @@ package org.jemco.simplebpm.execution;
 
 import java.util.List;
 
-import org.jemco.simplebpm.process.State;
-import org.jemco.simplebpm.process.StateTransition;
-
 public interface ExecutionState {
 
 	/**
