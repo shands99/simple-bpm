@@ -6,8 +6,8 @@ import org.jemco.simplebpm.process.loader.BpmnProcessLoader;
 import org.jemco.simplebpm.process.loader.ProcessLoader;
 
 /**
- * Simple implement that writes the process to the registry.  Note that the registry will almost certainly be writing to RAM and therefore this should 
- * not be used in a production environment.  A more appropriate implementation would be a persistent store using JPA.<br/>
+ * Simple implement that writes the process to the registry.  Note that the registry will almost certainly be writing to RAM and wil,l not be persistent 
+ * (state not trackable) this should not be used in a production environment.  A more appropriate implementation would be a persistent store using JPA.<br/>
  * <br/>
  * Use for testing purposes only.
  * @author a583548
@@ -40,6 +40,12 @@ public class DefaultProcessService extends BaseRegistryService implements Proces
 		
 		return process;
 		
+	}
+
+	@Override
+	public Process create(String name) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	

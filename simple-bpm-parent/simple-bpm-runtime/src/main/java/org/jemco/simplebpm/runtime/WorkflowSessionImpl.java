@@ -243,6 +243,12 @@ public class WorkflowSessionImpl implements WorkflowSession {
 		}
 	}
 	
+	/**
+	 * TODO move this and any other guarded transition logic to exclusive choice node processor.
+	 * @param state
+	 * @return
+	 * @throws WorkflowException
+	 */
 	private StateTransition retrieveTargetTransition(State state) throws WorkflowException {
 		// if non-blocking it can either have 1 non guarded transition, or n transitions where some are guarded but only 1 default can be non-guarded.
 		// execute each in turn to find if any pass, first that passes take the transition

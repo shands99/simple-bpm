@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface ServiceLoader {
 
-	void load() throws WorkflowException;
+	void load();
 	List<Object> getServices();
 }

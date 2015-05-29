@@ -9,6 +9,8 @@ public interface ProcessService {
 	
 	Process retrieve(String name);
 	
+	Process create(String name);
+	
 	Process create(String name, Resource resource);
 	
 }

@@ -22,20 +22,27 @@ public class SimpleBpmApplication {
 		
 	private static final Logger LOG = LoggerFactory.getLogger(SimpleBpmApplication.class);
 	
+	private volatile boolean started;
+	
+	private static final String MSG_SVC_STARTED = "Services already started. Ignoring request.";
+	
 	public SimpleBpmApplication() 
 	{
 		loadRegistry();
+		//TODO use app factory or is this overkill ?
 		serviceLoader = new ServiceLoaderImpl(registry);
-		try {
-			serviceLoader.load();
-		} catch (WorkflowException e) {
-			throw new RuntimeException(e);
-		}
+		serviceLoader.load();
+		
+		serviceManager = new ServiceManagerImpl(registry);
 	}
 	
 	public synchronized final void start() {
-		
+		if (started) {
+			LOG.warn(MSG_SVC_STARTED);
+			return;
+		}
 		serviceManager.startAll(serviceLoader.getServices());
+		started = true;
 		
 	}
 	

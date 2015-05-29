@@ -44,11 +44,12 @@ public class ServiceLoaderImpl implements ServiceLoader {
 	}
 	
 	@Override
-	public void load() throws WorkflowException {
+	public void load() {
 		
 		// mechanism to check that services have already been loaded for this application
 		if (services.size() > 0) {
-			throw new WorkflowException(MSG_SVCS_LOADED);
+			LOG.warn(MSG_SVCS_LOADED);
+			return;
 		}
 		
 		loadEventService();
