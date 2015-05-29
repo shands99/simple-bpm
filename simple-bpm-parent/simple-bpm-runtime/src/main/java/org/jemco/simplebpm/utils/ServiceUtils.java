@@ -39,6 +39,7 @@ public final class ServiceUtils {
 			return null;
 		} else if (results.size() == 0) {
 			LOG.error(MSG_NO_SVC, type);
+			return null;
 		}
 		
 		return results.get(0);

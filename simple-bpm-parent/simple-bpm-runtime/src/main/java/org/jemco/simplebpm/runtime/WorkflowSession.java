@@ -1,7 +1,5 @@
 package org.jemco.simplebpm.runtime;
 
-import org.jemco.simplebpm.action.ActionExecutor;
-import org.jemco.simplebpm.event.EventService;
 import org.jemco.simplebpm.execution.ExecutionState;
 import org.jemco.simplebpm.process.Process;
 
@@ -31,10 +29,6 @@ public interface WorkflowSession {
 	 * @return
 	 */
 	boolean isComplete();
-	
-	ActionExecutor getActionExecutor();
-	
-	EventService getEventService();
 	
 	String getSessionId();
 	
