@@ -6,6 +6,9 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>simple-bpm-springregistry</artifactId>
+  <properties>
+  	<dependency.version.spring>3.1.2.RELEASE</dependency.version.spring>
+  </properties>
   <dependencies>
   	<dependency>
 		<groupId>org.jemco</groupId>
@@ -21,7 +24,7 @@
   		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>3.1.2.RELEASE</version>
+			<version>${dependency.version.spring}</version>
 		</dependency>
   	</dependencies>
   </dependencyManagement>
